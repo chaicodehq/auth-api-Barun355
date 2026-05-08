@@ -1,5 +1,5 @@
-import { User } from '../models/user.model.js';
-import { verifyToken } from '../utils/jwt.js';
+import { User } from "../models/user.model.js";
+import { verifyToken } from "../utils/jwt.js";
 
 /**
  * TODO: Authenticate user using JWT
@@ -18,7 +18,31 @@ import { verifyToken } from '../utils/jwt.js';
 export async function authenticate(req, res, next) {
   try {
     // Your code here
+
+    let token = req.headers.authorization;
+
+    if (!token || !token.startsWith("Bearer")) {
+      return res.status(401).json({ error: { message: "No token provided" } });
+    }
+
+    token = token.split(" ")[1];
+
+    const decode = verifyToken(token);
+
+    if (!decode?.userId) {
+      return res.status(401).json({ error: { message: "Invalid token" } });
+    }
+
+    const user = await User.findById(decode.userId)
+
+    if (!user) {
+      return res.status(401).json({ error: { message: "Invalid Token" }})
+    }
+
+    req.user = { name: user.name, email: user.email, role: user.role, userId: user._id};
+
+    next();
   } catch (error) {
-    return res.status(401).json({ error: { message: 'Invalid token' } });
+    return res.status(401).json({ error: { message: "Invalid token" } });
   }
 }

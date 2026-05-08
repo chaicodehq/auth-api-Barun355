@@ -1,4 +1,4 @@
-import jwt from 'jsonwebtoken';
+import jwt from "jsonwebtoken";
 
 /**
  * TODO: Signs a JWT token with the given payload
@@ -29,6 +29,23 @@ import jwt from 'jsonwebtoken';
  */
 export function signToken(payload) {
   // Your code here
+
+  const JWT_SECRET = process.env.JWT_SECRET;
+  const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "24h";
+
+  if (!JWT_SECRET) {
+    throw new Error("No JWT Secret found");
+  }
+
+  try {
+    const signCode = jwt.sign(payload, JWT_SECRET, {
+      expiresIn: JWT_EXPIRES_IN,
+    });
+
+    return signCode;
+  } catch (error) {
+    throw new Error("Failed to sign token", { cause: error });
+  }
 }
 
 /**
@@ -67,4 +84,13 @@ export function signToken(payload) {
  */
 export function verifyToken(token) {
   // Your code here
+
+  const JWT_SECRET = process.env.JWT_SECRET;
+
+  if (!JWT_SECRET) {
+    throw new Error("No JWT Secret found");
+  }
+
+  const decode = jwt.verify(token, JWT_SECRET);
+  return decode;
 }
